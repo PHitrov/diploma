@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Языковой помощник</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #f0f4f8;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 600;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"], select, button {
+            font-size: 14px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e0;
+            background: #fff;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:hover,
+        select:hover,
+        button:hover {
+            border-color: #3498db;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        #text-container {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            min-height: 400px;
+            padding: 20px;
+            overflow: auto;
+            white-space: pre-wrap;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .translation-popup {
+            display: none;
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid #cbd5e0;
+            padding: 12px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-width: 300px;
+            font-size: 14px;
+        }
+
+        .loader {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌍 Языковой помощник</h1>
+
+    <div class="controls">
+        <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx">
+        <button onclick="loadFile()">Загрузить файл</button>
+        <select id="languageSelect">
+            <option value="en">🇬🇧 Английский</option>
+            <option value="ru">🇷🇺 Русский</option>
+        </select>
+        <div class="loader" id="loading"></div>
+    </div>
+
+    <div id="text-container" contenteditable="true"></div>
+
+    <div class="translation-popup" id="translationPopup">
+        <div id="translationContent"></div>
+        <button onclick="speakText()" style="margin-top: 10px; background-color: #48bb78;">🔊 Озвучить перевод</button>
+    </div>
+
+    <footer>
+        &copy; 2025 Языковой помощник. Перевод через Google Translate API.
+    </footer>
+
+    <script>
+        let currentText = '';
+        const loading = document.getElementById('loading');
+
+        function showLoader() {
+            loading.style.display = 'block';
+        }
+
+        function hideLoader() {
+            loading.style.display = 'none';
+        }
+
+        async function loadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Выберите файл');
+                return;
+            }
+
+            const allowed = ['txt', 'pdf', 'doc', 'docx'];
+            const fileExt = file.name.split('.').pop().toLowerCase();
+
+            if (!allowed.includes(fileExt)) {
+                alert('Поддерживаются только .txt, .pdf, .doc, .docx');
+                return;
+            }
+
+            try {
+                showLoader();
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                document.getElementById('text-container').textContent = data.text;
+
+            } catch (e) {
+                alert('Ошибка загрузки файла');
+            } finally {
+                hideLoader();
+            }
+        }
+
+        document.getElementById('text-container').addEventListener('mouseup', async () => {
+            const selection = window.getSelection().toString().trim();
+            if (!selection) return;
+
+            currentText = selection;
+            const targetLang = document.getElementById('languageSelect').value;
+
+            try {
+                showLoader();
+                const response = await fetch('/translate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({text: selection, dest_lang: targetLang})
+                });
+
+                const data = await response.json();
+                showTranslation(data.translation || 'Ошибка перевода');
+
+            } catch (e) {
+                showTranslation('Ошибка перевода');
+            } finally {
+                hideLoader();
+            }
+        });
+
+        function showTranslation(translation) {
+            const popup = document.getElementById('translationPopup');
+            const range = window.getSelection().getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+
+            popup.style.left = `${rect.left + window.scrollX}px`;
+            popup.style.top = `${rect.bottom + window.scrollY + 10}px`;
+            popup.style.display = 'block';
+            document.getElementById('translationContent').textContent = translation;
+        }
+
+        function speakText() {
+            const lang = document.getElementById('languageSelect').value;
+            const utterance = new SpeechSynthesisUtterance(currentText);
+            utterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
+            speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>

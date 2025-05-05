@@ -1,0 +1,37 @@
+# Виртуальное окружение
+venv/
+env/
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Логи и кэш
+*.log
+logs/
+.cache/
+.huggingface/
+model_cache/
+
+# Конфигурации и секреты
+.env
+.env.local
+.env.development
+.env.production
+
+# Временные файлы PDF/Word
+~$*.docx
+~$*.pdf
+
+# База данных (если используется SQLite)
+*.sqlite3
+instance/
+
+# Тестовые результаты
+output/
+results/
+temp/
+
+# Браузерные файлы
+*.css.map
+*.js.map
