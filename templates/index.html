@@ -2,81 +2,98 @@
 <html>
 <head>
     <title>Языковой помощник</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body {
+        /* Обнуление стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Inter', sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            background: #f0f4f8;
         }
 
-        h1 {
-            text-align: center;
-            font-weight: 600;
-            font-size: 28px;
+        /* Базовые стили страницы */
+        body {
+            background: #f0f4f8;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            color: #333;
+        }
+
+        /* Прогресс-бар */
+        .progress-bar {
+            width: 100%;
+            max-width: 300px;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
             margin-bottom: 20px;
         }
 
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4CAF50, #81C784);
+            width: 0%;
+            transition: width 0.3s ease-in-out;
+        }
+
+        /* Информация о прогрессе */
+        .progress-info p {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        /* Контейнер текста */
+        #text-container {
+            background: #fff;
+            border: 1px solid #cbd5e0;
+            padding: 20px;
+            min-height: 400px;
+            white-space: pre-wrap;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            cursor: text;
+        }
+
+        /* Placeholder для contenteditable */
+        #text-container:empty::before {
+            content: "Введите текст сюда...";
+            color: #999;
+        }
+
+        /* Управление (кнопки, селекты) */
         .controls {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 12px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
         }
 
-        input[type="file"], select, button {
+        input[type="file"],
+        select,
+        button {
             font-size: 14px;
             padding: 10px 12px;
-            border-radius: 6px;
             border: 1px solid #cbd5e0;
+            border-radius: 6px;
             background: #fff;
+            cursor: pointer;
             transition: all 0.3s ease;
-        }
-
-        input[type="file"]:hover,
-        select:hover,
-        button:hover {
-            border-color: #3498db;
         }
 
         button {
             background-color: #3498db;
             color: white;
             border: none;
-            cursor: pointer;
         }
 
-        button:disabled {
-            background-color: #a0aec0;
-            cursor: not-allowed;
+        button:hover {
+            background-color: #258cd1;
         }
 
-        #text-container {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            min-height: 400px;
-            padding: 20px;
-            overflow: auto;
-            white-space: pre-wrap;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .translation-popup {
-            display: none;
-            position: absolute;
-            background: #ffffff;
-            border: 1px solid #cbd5e0;
-            padding: 12px;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            z-index: 1000;
-            max-width: 300px;
-            font-size: 14px;
-        }
-
+        /* Лоадер */
         .loader {
             display: none;
             width: 40px;
@@ -92,6 +109,59 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Попап с переводом */
+        .translation-popup {
+            display: none;
+            position: absolute;
+            background: #fff;
+            border: 1px solid #cbd5e0;
+            padding: 12px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 300px;
+            font-size: 14px;
+        }
+
+        .translation-popup button {
+            margin-top: 10px;
+            background-color: #48bb78;
+            font-size: 14px;
+        }
+
+        .translation-popup button:hover {
+            background-color: #38a169;
+        }
+
+        /* Таблица истории */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+            white-space: pre-wrap;
+        }
+
+        th {
+            background: #f7fafc;
+            text-align: left;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        tr:hover {
+            background: #ebf4ff;
+        }
+
         footer {
             margin-top: 40px;
             text-align: center;
@@ -101,39 +171,63 @@
     </style>
 </head>
 <body>
-    <h1>🌍 Языковой помощник</h1>
+    <!-- Основной контент -->
+    <div id="main-app" style="display: none;">
+        <!-- Прогресс-бар -->
+        <div class="progress-bar" title="Очки: 50 / 100">
+            <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
+        </div>
 
-    <div class="controls">
-        <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx">
-        <button onclick="loadFile()">Загрузить файл</button>
-        <select id="languageSelect">
-            <option value="en">🇬🇧 Английский</option>
-            <option value="ru">🇷🇺 Русский</option>
-        </select>
-        <div class="loader" id="loading"></div>
+        <!-- Информация о прогрессе -->
+        <div class="progress-info">
+            <p>Уровень: <span id="level">1</span></p>
+            <p>Переведено: <span id="translates">0</span> фраз</p>
+            <p>Очки: <span id="points">0</span></p>
+            <p>Последняя активность: <span id="last-active">-</span></p>
+        </div>
+
+        <!-- Контейнер для текста -->
+        <div id="text-container" contenteditable="true"></div>
+
+        <!-- Кнопки управления -->
+        <div class="controls">
+            <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx">
+            <button onclick="loadFile()">Загрузить файл</button>
+            <select id="languageSelect">
+                <option value="en">🇬🇧 Английский</option>
+                <option value="ru">🇷🇺 Русский</option>
+            </select>
+            <button onclick="window.location.href='/history'">История</button>
+            <button onclick="logout()">Выйти</button>
+            <div class="loader" id="loading"></div>
+        </div>
+
+        <!-- Попап перевода -->
+        <div class="translation-popup" id="translationPopup">
+            <div id="translationContent"></div>
+            <button onclick="speakText()" style="margin-top: 10px; background-color: #48bb78;">🔊 Озвучить</button>
+            <button onclick="saveTranslation()">Сохранить в историю</button>
+        </div>
     </div>
 
-    <div id="text-container" contenteditable="true"></div>
-
-    <div class="translation-popup" id="translationPopup">
-        <div id="translationContent"></div>
-        <button onclick="speakText()" style="margin-top: 10px; background-color: #48bb78;">🔊 Озвучить перевод</button>
-    </div>
-
-    <footer>
-        &copy; 2025 Языковой помощник. Перевод через Google Translate API.
-    </footer>
+    <!-- Сообщение для незарегистрированных -->
+    <p id="login-prompt" style="text-align: center; margin-top: 20px;">
+        Нет аккаунта? <a href="/register">Зарегистрируйтесь</a>
+    </p>
 
     <script>
         let currentText = '';
+        let currentTranslation = '';
+        let currentSourceLang = '';
+        let currentTargetLang = '';
         const loading = document.getElementById('loading');
 
         function showLoader() {
-            loading.style.display = 'block';
+            if (loading) loading.style.display = 'block';
         }
 
         function hideLoader() {
-            loading.style.display = 'none';
+            if (loading) loading.style.display = 'none';
         }
 
         async function loadFile() {
@@ -149,7 +243,7 @@
             const fileExt = file.name.split('.').pop().toLowerCase();
 
             if (!allowed.includes(fileExt)) {
-                alert('Поддерживаются только .txt, .pdf, .doc, .docx');
+                alert('Поддерживаются только .txt, .pdf, .doc(x)');
                 return;
             }
 
@@ -164,8 +258,10 @@
                 });
 
                 const data = await response.json();
-                document.getElementById('text-container').textContent = data.text;
-
+                const textContainer = document.getElementById('text-container');
+                if (textContainer) {
+                    textContainer.textContent = data.text;
+                }
             } catch (e) {
                 alert('Ошибка загрузки файла');
             } finally {
@@ -173,26 +269,42 @@
             }
         }
 
+        // --- Перевод выделенного текста ---
         document.getElementById('text-container').addEventListener('mouseup', async () => {
             const selection = window.getSelection().toString().trim();
             if (!selection) return;
 
             currentText = selection;
-            const targetLang = document.getElementById('languageSelect').value;
+            currentTargetLang = document.getElementById('languageSelect').value;
 
             try {
                 showLoader();
                 const response = await fetch('/translate', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({text: selection, dest_lang: targetLang})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: selection, dest_lang: currentTargetLang })
                 });
 
                 const data = await response.json();
-                showTranslation(data.translation || 'Ошибка перевода');
+                if (data.error) {
+                    alert('Ошибка перевода: ' + data.error);
+                    return;
+                }
+
+                if (data.translation === '') {
+                    alert('Пустой результат перевода');
+                    return;
+                }
+
+                currentTranslation = data.translation;
+                currentSourceLang = data.source_lang || 'en';
+                currentTargetLang = data.target_lang || 'ru';
+
+                showTranslation(data.translation);
 
             } catch (e) {
-                showTranslation('Ошибка перевода');
+                alert('Ошибка сервера при переводе');
+                console.error('Ошибка перевода:', e);
             } finally {
                 hideLoader();
             }
@@ -200,8 +312,7 @@
 
         function showTranslation(translation) {
             const popup = document.getElementById('translationPopup');
-            const range = window.getSelection().getRangeAt(0);
-            const rect = range.getBoundingClientRect();
+            const rect = window.getSelection().getRangeAt(0).getBoundingClientRect();
 
             popup.style.left = `${rect.left + window.scrollX}px`;
             popup.style.top = `${rect.bottom + window.scrollY + 10}px`;
@@ -209,11 +320,143 @@
             document.getElementById('translationContent').textContent = translation;
         }
 
+        // --- Обновление прогресса ---
+        async function updateProgress() {
+            try {
+                const response = await fetch('/progress');
+                const data = await response.json();
+                document.getElementById('level').textContent = data.level;
+                document.getElementById('translates').textContent = data.total_translations;
+                document.getElementById('points').textContent = data.points;
+                document.getElementById('last-active').textContent = new Date(data.last_active).toLocaleString();
+                document.getElementById('progress-fill').style.width = `${data.points % 100}%`;
+            } catch (e) {
+                console.error('Ошибка обновления прогресса:', e);
+            }
+        }
+
+        // --- Загрузка истории ---
+        async function loadHistory() {
+            const table = document.getElementById('history-table');
+            if (!table) return;
+
+            try {
+                const response = await fetch('/history');
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const data = await response.json();
+                table.innerHTML = '';
+
+                if (!data.length) {
+                    table.innerHTML = '<tr><td colspan="5">Нет истории переводов</td></tr>';
+                    return;
+                }
+
+                data.forEach(entry => {
+                    if (entry.source_lang === entry.target_lang || entry.original_text === entry.translated_text) return;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${entry.original_text}</td>
+                        <td>${entry.translated_text}</td>
+                        <td>${entry.source_lang.toUpperCase()}</td>
+                        <td>${entry.target_lang.toUpperCase()}</td>
+                        <td>${new Date(entry.timestamp).toLocaleString()}</td>
+                    `;
+                    table.appendChild(row);
+                });
+            } catch (e) {
+                table.innerHTML = '<tr><td colspan="5">Ошибка загрузки истории</td></tr>';
+            }
+        }
+
+        // --- Выход из аккаунта ---
+        async function logout() {
+            try {
+                await fetch('/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                window.location.href = '/login';
+            } catch (e) {
+                alert('Ошибка выхода');
+                window.location.href = '/login';
+            }
+        }
+
+        // --- Проверка сессии при загрузке ---
+        window.onload = async () => {
+            const response = await fetch('/progress');
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Показываем основной контент
+            const mainApp = document.getElementById('main-app');
+            if (mainApp) {
+                mainApp.style.display = 'block';
+            }
+
+            // Обновляем прогресс и историю
+            await updateProgress();
+            await loadHistory();
+        };
+
+        // --- Озвучка ---
         function speakText() {
-            const lang = document.getElementById('languageSelect').value;
             const utterance = new SpeechSynthesisUtterance(currentText);
-            utterance.lang = lang === 'en' ? 'en-US' : 'ru-RU';
             speechSynthesis.speak(utterance);
+        }
+
+        // --- Сохранить перевод вручную ---
+        async function saveTranslation() {
+            if (!currentText || !currentTranslation) {
+                alert('Нет данных для сохранения');
+                return;
+            }
+
+            if (currentSourceLang === currentTargetLang) {
+                alert('Языки совпадают — сохранение не требуется');
+                return;
+            }
+
+            if (currentTranslation === currentText) {
+                alert('Перевод совпадает с оригиналом — сохранение не требуется');
+                return;
+            }
+
+            try {
+                showLoader();
+                const response = await fetch('/save-translation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        original_text: currentText,
+                        translated_text: currentTranslation,
+                        source_lang: currentSourceLang,
+                        target_lang: currentTargetLang
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Перевод сохранён');
+                    await updateProgress();
+                    await loadHistory();
+                } else {
+                    alert('Ошибка сохранения: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (e) {
+                alert('Ошибка сервера при сохранении');
+                console.error('Ошибка сохранения:', e);
+            } finally {
+                hideLoader();
+                document.getElementById('translationPopup').style.display = 'none';
+            }
         }
     </script>
 </body>

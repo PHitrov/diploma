@@ -17,34 +17,53 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             width: 300px;
+            text-align: center;
         }
-        input {
+        input, button {
             width: 100%;
             padding: 10px;
-            margin-bottom: 10px;
+            margin: 10px 0;
             border: 1px solid #ddd;
             border-radius: 4px;
         }
         button {
-            width: 100%;
-            padding: 10px;
-            background: #3498db;
+            background-color: #3498db;
             color: white;
             border: none;
-            border-radius: 4px;
             cursor: pointer;
         }
         button:hover {
-            background: #258cd1;
+            background-color: #258cd1;
         }
     </style>
 </head>
 <body>
-    <form action="/login" method="post">
-        <h2 style="text-align:center">Вход</h2>
+    <form id="loginForm">
+        <h2>Вход</h2>
         <input type="text" name="username" placeholder="Логин" required>
         <input type="password" name="password" placeholder="Пароль" required>
         <button type="submit">Войти</button>
     </form>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.querySelector('input[name="username"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ username, password })
+            });
+
+            const data = await response.json();
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                alert('Ошибка входа: ' + (data.error || 'Неизвестная ошибка'));
+            }
+        });
+    </script>
 </body>
 </html>

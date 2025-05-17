@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>История переводов</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h2>История переводов</h2>
+    <button onclick="window.location.href='/'">Назад</button>
+    <table>
+        <thead>
+            <tr>
+                <th>Оригинал</th>
+                <th>Перевод</th>
+                <th>Язык</th>
+                <th>Цель</th>
+                <th>Дата</th>
+            </tr>
+        </thead>
+        <tbody id="history-table">
+            <!-- Сюда будут подгружаться данные -->
+        </tbody>
+    </table>
+
+    <script>
+        // --- Функция для декодирования HTML-сущностей ---
+        function decodeHTMLEntities(text) {
+            const textArea = document.createElement('textarea');
+            textArea.innerHTML = text;
+            return textArea.value.replace(/^"|"$/g, '');
+        }
+
+        // --- Функция для загрузки истории ---
+        async function loadHistory() {
+            const table = document.getElementById('history-table');
+            if (!table) {
+                console.error('Контейнер таблицы не найден');
+                return;
+            }
+            table.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/history');
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const data = await response.json();
+                if (!Array.isArray(data)) {
+                    table.innerHTML = '<tr><td colspan="5">Некорректный формат данных</td></tr>';
+                    return;
+                }
+
+                if (!data.length) {
+                    table.innerHTML = '<tr><td colspan="5">Нет истории переводов</td></tr>';
+                    return;
+                }
+
+                data.forEach(entry => {
+                    // Пропуск дубликатов
+                    if (entry.source_lang === entry.target_lang || entry.original_text === entry.translated_text) return;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${decodeHTMLEntities(entry.original_text)}</td>
+                        <td>${decodeHTMLEntities(entry.translated_text)}</td>
+                        <td>${entry.source_lang.toUpperCase()}</td>
+                        <td>${entry.target_lang.toUpperCase()}</td>
+                        <td>${new Date(entry.timestamp).toLocaleString()}</td>
+                    `;
+                    table.appendChild(row);
+                });
+
+            } catch (e) {
+                console.error('Ошибка загрузки истории:', e);
+                table.innerHTML = '<tr><td colspan="5">Ошибка загрузки истории</td></tr>';
+            }
+        }
+
+        window.onload = () => {
+            console.log('Загрузка истории...');
+            loadHistory();
+        };
+    </script>
+</body>
+</html>

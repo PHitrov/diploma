@@ -1,0 +1,175 @@
+/* Обнуление стилей */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Базовые стили страницы */
+body {
+    background: #f0f4f8;
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: #333;
+}
+
+/* Прогресс-бар */
+.progress-bar {
+    width: 100%;
+    max-width: 300px;
+    height: 20px;
+    background: #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #4CAF50, #81C784);
+    width: 0%;
+    transition: width 0.3s ease-in-out;
+}
+
+/* Информация о прогрессе */
+.progress-info p {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+/* Контейнер с текстом */
+#text-container {
+    background: #fff;
+    border: 1px solid #cbd5e0;
+    padding: 20px;
+    min-height: 400px;
+    white-space: pre-wrap;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    cursor: text;
+}
+
+/* Управление (кнопки, селекты) */
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+input[type="file"],
+select,
+button {
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+}
+
+button:hover {
+    background-color: #258cd1;
+}
+
+/* Попап с переводом */
+.translation-popup {
+    display: none;
+    position: absolute;
+    background: #fff;
+    border: 1px solid #cbd5e0;
+    padding: 12px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-width: 300px;
+    font-size: 14px;
+}
+
+.translation-popup button {
+    margin-top: 10px;
+    background-color: #48bb78;
+    font-size: 14px;
+}
+
+.translation-popup button:hover {
+    background-color: #38a169;
+}
+
+/* Лоадер (анимация вращения) */
+.loader {
+    display: none;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Таблица истории */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+    white-space: pre-wrap;
+}
+
+th {
+    background: #f7fafc;
+    text-align: left;
+}
+
+tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+tr:hover {
+    background: #ebf4ff;
+}
+
+/* Футер */
+footer {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 14px;
+    color: #718096;
+}
+
+/* Резервное пространство для контента */
+#main-app {
+    display: none;
+}
+
+/* Ссылки */
+a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
